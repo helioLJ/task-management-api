@@ -17,6 +17,7 @@ model User {
   hash  String
 
   tasks Task[]
+  Tag   Tag[]
 }
 
 model Task {
@@ -40,10 +41,12 @@ model Task {
 model Tag {
   id Int @id @default(autoincrement())
 
-  name String
+  name String @unique
 
-  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  taskId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  tasks Task[]
 }
 
 model Subtask {
