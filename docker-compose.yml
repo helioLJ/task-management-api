@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  dev-db:
+    image: postgres:15
+    ports:
+      - 5434:5432
+    environment:
+      POSTGRES_USER: heliodarko
+      POSTGRES_PASSWORD: 48shd-KSU024-asSA783-asqipzlsAKS-0327ZNAskqoe
+      POSTGRES_DB: nest-task
+    networks:
+      - taskmanagement
+
+  test-db:
+    image: postgres:15
+    ports:
+      - 5435:5432
+    environment:
+      POSTGRES_USER: heliodarko
+      POSTGRES_PASSWORD: 48shd-KSU024-asSA783-asqipzlsAKS-0327ZNAskqoe
+      POSTGRES_DB: nest-task
+    networks:
+      - taskmanagement
+networks:
+  taskmanagement:
