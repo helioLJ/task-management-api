@@ -127,8 +127,23 @@ describe('App e2e', () => {
 
   describe('Task', () => {
     describe('Create Task', () => {
-      it.todo('should not create task without token');
-      it.todo('should create task');
+      it('should not create task without token', () => {
+        return pactum
+          .spec()
+          .post('/task')
+          .withBody({ title: 'New Task' })
+          .expectStatus(401)
+          .inspect();
+      });
+      it('should create task', () => {
+        return pactum
+          .spec()
+          .post('/task')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .withBody({ title: 'New Task' })
+          .expectStatus(201)
+          .inspect();
+      });
     });
 
     describe('Edit Task', () => {
