@@ -65,6 +65,18 @@ describe('App e2e', () => {
           .withBody(dto)
           .expectStatus(201);
       });
+      it('should register other user', () => {
+        return pactum
+          .spec()
+          .post('/auth/register')
+          .withBody({
+            name: 'other',
+            email: 'other@email.com',
+            password: '123',
+          })
+          .stores('otherUser', 'access_token')
+          .expectStatus(201);
+      });
     });
 
     describe('SignIn', () => {
@@ -132,8 +144,7 @@ describe('App e2e', () => {
           .spec()
           .post('/task')
           .withBody({ title: 'New Task' })
-          .expectStatus(401)
-          .inspect();
+          .expectStatus(401);
       });
       it('should create task', () => {
         return pactum
@@ -141,37 +152,194 @@ describe('App e2e', () => {
           .post('/task')
           .withHeaders({ Authorization: 'Bearer $S{userAt}' })
           .withBody({ title: 'New Task' })
+          .expectBodyContains('New Task')
           .expectStatus(201)
-          .inspect();
+          .stores('taskId', 'id');
+      });
+      it('should create other task', () => {
+        return pactum
+          .spec()
+          .post('/task')
+          .withHeaders({ Authorization: 'Bearer $S{otherUser}' })
+          .withBody({ title: 'Other Task' })
+          .expectBodyContains('Other Task')
+          .stores('otherTaskId', 'id');
       });
     });
 
     describe('Edit Task', () => {
-      it.todo('should not change task without token');
-      it.todo('should not change task if isnt yours');
-      it.todo('should change task title');
-      it.todo('should change task description');
-      it.todo('should change task completed');
-      it.todo('should change task list');
-      it.todo('should change task due date');
+      it('should not change task without token', () => {
+        return pactum
+          .spec()
+          .patch('/task/$S{taskId}')
+          .withBody({ title: 'Changed Task' })
+          .expectStatus(401);
+      });
+      it('should not change task if isnt yours', () => {
+        return pactum
+          .spec()
+          .patch('/task/{id}')
+          .withPathParams('id', '$S{otherTaskId}')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .withBody({ title: 'Changed Task' })
+          .expectStatus(403);
+      });
+      it('should not change task if does not exist', () => {
+        return pactum
+          .spec()
+          .patch('/task/999999999')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .withBody({ title: 'Changed Task' })
+          .expectStatus(404);
+      });
+      it('should change task title', () => {
+        return pactum
+          .spec()
+          .patch('/task/{id}')
+          .withPathParams('id', '$S{taskId}')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .withBody({ title: 'Changed Task' })
+          .expectJsonLike({
+            title: 'Changed Task',
+          })
+          .expectStatus(200);
+      });
+      it('should change task description', () => {
+        return pactum
+          .spec()
+          .patch('/task/{id}')
+          .withPathParams('id', '$S{taskId}')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .withBody({ description: 'Im a description' })
+          .expectJsonLike({
+            title: 'Changed Task',
+            description: 'Im a description',
+          })
+          .expectStatus(200);
+      });
+      it('should change task completed', () => {
+        return pactum
+          .spec()
+          .patch('/task/{id}')
+          .withPathParams('id', '$S{taskId}')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .withBody({ completed: true })
+          .expectJsonLike({
+            title: 'Changed Task',
+            description: 'Im a description',
+            completed: true,
+          })
+          .expectStatus(200);
+      });
+      it('should change task list', () => {
+        return pactum
+          .spec()
+          .patch('/task/{id}')
+          .withPathParams('id', '$S{taskId}')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .withBody({ list: 'Work' })
+          .expectJsonLike({
+            title: 'Changed Task',
+            description: 'Im a description',
+            completed: true,
+            list: 'Work',
+          })
+          .expectStatus(200);
+      });
+      it('should change task due date', () => {
+        const dueDate = new Date('2023-09-18').toISOString();
+
+        return pactum
+          .spec()
+          .patch('/task/{id}')
+          .withPathParams('id', '$S{taskId}')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .withBody({ dueDate: dueDate })
+          .expectJsonLike({
+            title: 'Changed Task',
+            description: 'Im a description',
+            completed: true,
+            list: 'Work',
+            dueDate: dueDate,
+          })
+          .expectStatus(200);
+      });
     });
 
     describe('Get Indidivual Task', () => {
-      it.todo('should not get task without token');
-      it.todo('should not get task if isnt yours');
-      it.todo('should get user task (everything)');
+      it('should not get task without token', () => {
+        return pactum
+          .spec()
+          .get('/task/$S{taskId}')
+          .withPathParams('id', '$S{taskId}')
+          .expectStatus(401);
+      });
+      it('should not get task if isnt yours', () => {
+        return pactum
+          .spec()
+          .get('/task/{id}')
+          .withPathParams('id', '$S{otherTaskId}')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .expectStatus(403);
+      });
+      it('should get user task (everything)', () => {
+        const dueDate = new Date('2023-09-18').toISOString();
+
+        return pactum
+          .spec()
+          .get('/task/{id}')
+          .withPathParams('id', '$S{taskId}')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .expectJsonLike({
+            title: 'Changed Task',
+            description: 'Im a description',
+            completed: true,
+            list: 'Work',
+            dueDate: dueDate,
+          })
+          .expectStatus(200);
+      });
     });
 
     describe('Get Many Tasks', () => {
-      it.todo('should not get tasks without token');
-      it.todo('should not get tasks if isnt yours');
-      it.todo('should get user tasks (title, due-date, list, subtasks)');
+      it('should not get tasks without token', () => {
+        return pactum.spec().get('/task').expectStatus(401);
+      });
+      it('should get user tasks (title, due-date, list, subtasks)', () => {
+        return pactum
+          .spec()
+          .get('/task')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .expectJsonLength(1)
+          .expectStatus(200);
+      });
     });
 
     describe('Delete Task', () => {
-      it.todo('should not delete task without token');
-      it.todo('should not delete task if isnt yours');
-      it.todo('should delete task');
+      it('should not delete task without token', () => {
+        return pactum
+          .spec()
+          .delete('/task/$S{taskId}')
+          .withPathParams('id', '$S{taskId}')
+          .expectStatus(401);
+      });
+      it('should not delete task if isnt yours', () => {
+        return pactum
+          .spec()
+          .delete('/task/{id}')
+          .withPathParams('id', '$S{otherTaskId}')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .expectStatus(403);
+      });
+      it('should delete task', () => {
+        return pactum
+          .spec()
+          .delete('/task/{id}')
+          .withPathParams('id', '$S{otherTaskId}')
+          .withHeaders({ Authorization: 'Bearer $S{otherUser}' })
+          .expectJsonMatchStrict({ message: 'Task deleted.' })
+          .expectStatus(200);
+      });
     });
   });
 
