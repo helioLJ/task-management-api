@@ -38,7 +38,6 @@ export class TaskService {
       if (userId !== tasks[0].userId)
         throw new ForbiddenException('This task is not yours.');
 
-      console.log(tasks);
       return tasks;
     } catch (error) {
       throw error;

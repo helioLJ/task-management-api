@@ -344,34 +344,88 @@ describe('App e2e', () => {
   });
 
   describe('Tag', () => {
-    describe('Create tag', () => {
-      it.todo('should not create tag without token');
-      it.todo('should not create tag that exists');
-      it.todo('should create tag');
+    describe('Create Tag', () => {
+      it('should not create tag without token', () => {
+        return pactum
+          .spec()
+          .post('/tag')
+          .withBody({ name: 'New Tag' })
+          .expectStatus(401)
+          .inspect();
+      });
+
+      it('should create tag', () => {
+        return pactum
+          .spec()
+          .post('/tag')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .withBody({ name: 'New Tag' })
+          .expectBodyContains('New Tag')
+          .expectStatus(201)
+          .stores('tagId', 'id')
+          .inspect();
+      });
+
+      it('should not create tag that exists', () => {
+        return pactum
+          .spec()
+          .post('/tag')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .withBody({ name: 'New Tag' })
+          .expectStatus(403);
+      });
     });
 
-    describe('Edit tag', () => {
-      it.todo('should not change tag without token');
-      it.todo('should not change tag if isnt yours');
-      it.todo('should change tag title');
+    describe('Edit Tag', () => {
+      it('should not change tag without token', () => {
+        // Your test logic here
+      });
+
+      it("should not change tag if it isn't yours", () => {
+        // Your test logic here
+      });
+
+      it('should change tag title', () => {
+        // Your test logic here
+      });
     });
 
-    describe('Get Indidivual tag', () => {
-      it.todo('should not get tag without token');
-      it.todo('should not get tag if isnt yours');
-      it.todo('should get task tags');
+    describe('Get Individual Tag', () => {
+      it('should not get tag without token', () => {
+        // Your test logic here
+      });
+
+      it("should not get tag if it isn't yours", () => {
+        // Your test logic here
+      });
+
+      it('should get tag information', () => {
+        // Your test logic here
+      });
     });
 
-    describe('Get Many tags', () => {
-      it.todo('should not get tags without token');
-      it.todo('should not get tags if isnt yours');
-      it.todo('should get user tags');
+    describe('Get Many Tags', () => {
+      it('should not get tags without token', () => {
+        // Your test logic here
+      });
+
+      it('should get user tags (title, due-date, list, subtasks)', () => {
+        // Your test logic here
+      });
     });
 
-    describe('Delete tag', () => {
-      it.todo('should not delete tag without token');
-      it.todo('should not delete tag if isnt yours');
-      it.todo('should delete tag');
+    describe('Delete Tag', () => {
+      it('should not delete tag without token', () => {
+        // Your test logic here
+      });
+
+      it("should not delete tag if it isn't yours", () => {
+        // Your test logic here
+      });
+
+      it('should delete tag', () => {
+        // Your test logic here
+      });
     });
   });
 
