@@ -22,27 +22,25 @@ export class TagController {
 
   @Post()
   create(@GetUser('id') userId: number, @Body() createTagDto: CreateTagDto) {
-    console.log('EAEE' + userId + createTagDto.name);
     return this.tagService.create(userId, createTagDto);
   }
 
   @Get()
-  findAll() {
-    return this.tagService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.tagService.findOne(+id);
+  findAll(@GetUser('id') userId: number) {
+    return this.tagService.findAll(userId);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTagDto: UpdateTagDto) {
-    return this.tagService.update(+id, updateTagDto);
+  update(
+    @GetUser('id') userId: number,
+    @Param('id') id: string,
+    @Body() updateTagDto: UpdateTagDto,
+  ) {
+    return this.tagService.update(+id, updateTagDto, userId);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.tagService.remove(+id);
+  remove(@Param('id') id: string, @GetUser('id') userId: number) {
+    return this.tagService.remove(+id, userId);
   }
 }

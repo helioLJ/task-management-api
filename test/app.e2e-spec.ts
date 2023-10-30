@@ -350,8 +350,7 @@ describe('App e2e', () => {
           .spec()
           .post('/tag')
           .withBody({ name: 'New Tag' })
-          .expectStatus(401)
-          .inspect();
+          .expectStatus(401);
       });
 
       it('should create tag', () => {
@@ -362,8 +361,18 @@ describe('App e2e', () => {
           .withBody({ name: 'New Tag' })
           .expectBodyContains('New Tag')
           .expectStatus(201)
-          .stores('tagId', 'id')
-          .inspect();
+          .stores('tagId', 'id');
+      });
+
+      it('should create another tag', () => {
+        return pactum
+          .spec()
+          .post('/tag')
+          .withHeaders({ Authorization: 'Bearer $S{otherUser}' })
+          .withBody({ name: 'Other Tag' })
+          .expectBodyContains('Other Tag')
+          .expectStatus(201)
+          .stores('otherTagId', 'id');
       });
 
       it('should not create tag that exists', () => {
@@ -378,53 +387,76 @@ describe('App e2e', () => {
 
     describe('Edit Tag', () => {
       it('should not change tag without token', () => {
-        // Your test logic here
+        return pactum
+          .spec()
+          .patch('/tag/$S{tagId}')
+          .withBody({ title: 'Changed Tag' })
+          .expectStatus(401);
       });
 
       it("should not change tag if it isn't yours", () => {
-        // Your test logic here
+        return pactum
+          .spec()
+          .patch('/tag/{id}')
+          .withPathParams('id', '$S{otherTagId}')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .withBody({ title: 'Changed Tag' })
+          .expectStatus(403);
       });
 
       it('should change tag title', () => {
-        // Your test logic here
-      });
-    });
-
-    describe('Get Individual Tag', () => {
-      it('should not get tag without token', () => {
-        // Your test logic here
-      });
-
-      it("should not get tag if it isn't yours", () => {
-        // Your test logic here
-      });
-
-      it('should get tag information', () => {
-        // Your test logic here
+        return pactum
+          .spec()
+          .patch('/tag/{id}')
+          .withPathParams('id', '$S{tagId}')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .withBody({ name: 'Changed Tag' })
+          .expectJsonLike({
+            name: 'Changed Tag',
+          })
+          .expectStatus(200);
       });
     });
 
     describe('Get Many Tags', () => {
       it('should not get tags without token', () => {
-        // Your test logic here
+        return pactum.spec().get('/tag').expectStatus(401);
       });
 
-      it('should get user tags (title, due-date, list, subtasks)', () => {
-        // Your test logic here
+      it('should get user tags', () => {
+        return pactum
+          .spec()
+          .get('/tag')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .expectJsonLength(1)
+          .expectStatus(200);
       });
     });
 
     describe('Delete Tag', () => {
       it('should not delete tag without token', () => {
-        // Your test logic here
+        return pactum
+          .spec()
+          .delete('/tag/$S{tagId}')
+          .withPathParams('id', '$S{tagId}')
+          .expectStatus(401);
       });
-
-      it("should not delete tag if it isn't yours", () => {
-        // Your test logic here
+      it('should not delete tag if isnt yours', () => {
+        return pactum
+          .spec()
+          .delete('/tag/{id}')
+          .withPathParams('id', '$S{otherTagId}')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .expectStatus(403);
       });
-
       it('should delete tag', () => {
-        // Your test logic here
+        return pactum
+          .spec()
+          .delete('/tag/{id}')
+          .withPathParams('id', '$S{otherTagId}')
+          .withHeaders({ Authorization: 'Bearer $S{otherUser}' })
+          .expectJsonMatchStrict({ message: 'Tag deleted.' })
+          .expectStatus(200);
       });
     });
   });

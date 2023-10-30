@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 // import { PrismaService } from 'src/prisma/prisma.service';
@@ -9,7 +13,6 @@ export class TagService {
   constructor(private prisma: PrismaService) {}
 
   async create(userId: number, createTagDto: CreateTagDto) {
-    console.log(createTagDto);
     try {
       let tag = await this.prisma.tag.findUnique({
         where: {
@@ -34,19 +37,72 @@ export class TagService {
     }
   }
 
-  findAll() {
-    return `This action returns all tag`;
+  async findAll(userId: number) {
+    try {
+      const tags = await this.prisma.tag.findMany({
+        where: {
+          userId: userId,
+        },
+      });
+
+      if (userId !== tags[0].userId)
+        throw new ForbiddenException('This tag is not yours.');
+
+      return tags;
+    } catch (error) {
+      throw error;
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} tag`;
+  async update(id: number, updateTagDto: UpdateTagDto, userId: number) {
+    try {
+      const tag = await this.prisma.tag.findUnique({
+        where: {
+          id: id,
+        },
+      });
+
+      if (!tag) throw new NotFoundException('Tag not found.');
+      if (userId !== tag.userId)
+        throw new ForbiddenException('This tag is not yours.');
+
+      const updatedTag = await this.prisma.tag.update({
+        data: {
+          name: updateTagDto.name,
+        },
+        where: {
+          id,
+          userId,
+        },
+      });
+
+      return updatedTag;
+    } catch (error) {
+      throw error;
+    }
   }
 
-  update(id: number, updateTagDto: UpdateTagDto) {
-    return `This action updates a #${id} tag`;
-  }
+  async remove(id: number, userId: number) {
+    try {
+      const tag = await this.prisma.tag.findUnique({
+        where: {
+          id: id,
+        },
+      });
 
-  remove(id: number) {
-    return `This action removes a #${id} tag`;
+      if (!tag) throw new NotFoundException('Tag not found.');
+      if (userId !== tag.userId)
+        throw new ForbiddenException('This tag is not yours.');
+
+      await this.prisma.tag.delete({
+        where: {
+          id: id,
+        },
+      });
+
+      return { message: 'Tag deleted.' };
+    } catch (error) {
+      throw error;
+    }
   }
 }
