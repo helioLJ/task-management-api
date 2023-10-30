@@ -32,7 +32,6 @@ export class TagService {
 
       return tag;
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }

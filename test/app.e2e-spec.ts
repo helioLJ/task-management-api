@@ -165,6 +165,15 @@ describe('App e2e', () => {
           .expectBodyContains('Other Task')
           .stores('otherTaskId', 'id');
       });
+      it('should create task to be deleted', () => {
+        return pactum
+          .spec()
+          .post('/task')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .withBody({ title: 'Delete me Task' })
+          .expectBodyContains('Delete me Task')
+          .stores('deleteTaskId', 'id');
+      });
     });
 
     describe('Edit Task', () => {
@@ -310,7 +319,7 @@ describe('App e2e', () => {
           .spec()
           .get('/task')
           .withHeaders({ Authorization: 'Bearer $S{userAt}' })
-          .expectJsonLength(1)
+          .expectJsonLength(2)
           .expectStatus(200);
       });
     });
@@ -335,8 +344,8 @@ describe('App e2e', () => {
         return pactum
           .spec()
           .delete('/task/{id}')
-          .withPathParams('id', '$S{otherTaskId}')
-          .withHeaders({ Authorization: 'Bearer $S{otherUser}' })
+          .withPathParams('id', '$S{deleteTaskId}')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
           .expectJsonMatchStrict({ message: 'Task deleted.' })
           .expectStatus(200);
       });
@@ -463,27 +472,126 @@ describe('App e2e', () => {
 
   describe('Subtask', () => {
     describe('Create subtask', () => {
-      it.todo('should not create subtask without token');
-      it.todo('should create subtask');
+      it('should not create subtask without token', () => {
+        return pactum
+          .spec()
+          .post('/subtask')
+          .withBody({ title: 'New Subtask', taskId: '$S{taskId}' })
+          .expectStatus(401);
+      });
+
+      it('should not create subtask with a non existing task', () => {
+        return pactum
+          .spec()
+          .post('/subtask')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .withBody({ title: 'New Subtask', taskId: 999 })
+          .expectStatus(404);
+      });
+
+      it('should not create subtask if task is not yours', () => {
+        return pactum
+          .spec()
+          .post('/subtask')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .withBody({ title: 'New Subtask', taskId: '$S{otherTaskId}' })
+          .expectStatus(403);
+      });
+
+      it('should create subtask', () => {
+        return pactum
+          .spec()
+          .post('/subtask')
+          .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+          .withBody({ title: 'New Subtask', taskId: '$S{taskId}' })
+          .expectBodyContains('New Subtask')
+          .expectStatus(201)
+          .stores('subtaskId', 'id');
+      });
+
+      it('should create another subtask', () => {
+        return pactum
+          .spec()
+          .post('/subtask')
+          .withHeaders({ Authorization: 'Bearer $S{otherUser}' })
+          .withBody({ title: 'Other Subtask', taskId: '$S{otherTaskId}' })
+          .expectBodyContains('Other Subtask')
+          .expectStatus(201)
+          .stores('otherSubtaskId', 'id');
+      });
     });
 
-    describe('Edit subtask', () => {
-      it.todo('should not change subtask without token');
-      it.todo('should not change subtask if isnt yours');
-      it.todo('should change subtask title');
-      it.todo('should change subtask completed');
-    });
+    // describe('Edit subtask', () => {
+    //   it('should not change subtask without token', () => {
+    //     return pactum
+    //       .spec()
+    //       .patch('/subtask/$S{subtaskId}')
+    //       .withBody({ title: 'Changed Subtask' })
+    //       .expectStatus(401);
+    //   });
 
-    describe('Get Many subtasks', () => {
-      it.todo('should not get subtasks without token');
-      it.todo('should not get subtasks if isnt yours');
-      it.todo('should get task subtasks');
-    });
+    //   it("should not change subtask if it isn't yours", () => {
+    //     return pactum
+    //       .spec()
+    //       .patch('/subtask/{id}')
+    //       .withPathParams('id', '$S{otherSubtaskId}')
+    //       .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+    //       .withBody({ title: 'Changed Subtask' })
+    //       .expectStatus(403);
+    //   });
 
-    describe('Delete subtask', () => {
-      it.todo('should not delete subtask without token');
-      it.todo('should not delete subtask if isnt yours');
-      it.todo('should delete subtask');
-    });
+    //   it('should change subtask title', () => {
+    //     return pactum
+    //       .spec()
+    //       .patch('/subtask/{id}')
+    //       .withPathParams('id', '$S{subtaskId}')
+    //       .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+    //       .withBody({ name: 'Changed Subtask' })
+    //       .expectJsonLike({
+    //         name: 'Changed Subtask',
+    //       })
+    //       .expectStatus(200);
+    //   });
+
+    //   it('should change subtask completed', () => {
+    //     return pactum
+    //       .spec()
+    //       .patch('/subtask/{id}')
+    //       .withPathParams('id', '$S{subtaskId}')
+    //       .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+    //       .withBody({ name: 'Changed Subtask' })
+    //       .expectJsonLike({
+    //         name: 'Changed Subtask',
+    //       })
+    //       .expectStatus(200);
+    //   });
+    // });
+
+    // describe('Delete Subtask', () => {
+    //   it('should not delete subtask without token', () => {
+    //     return pactum
+    //       .spec()
+    //       .delete('/subtask/$S{subtaskId}')
+    //       .withPathParams('id', '$S{subtaskId}')
+    //       .expectStatus(401);
+    //   });
+    //   it('should not delete subtask if isnt yours', () => {
+    //     return pactum
+    //       .spec()
+    //       .delete('/subtask/{id}')
+    //       .withPathParams('id', '$S{otherSubtaskId}')
+    //       .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+    //       .expectStatus(403);
+    //   });
+    //   it('should delete subtask', () => {
+    //     return pactum
+    //       .spec()
+    //       .delete('/subtask/{id}')
+    //       .withPathParams('id', '$S{otherSubtaskId}')
+    //       .withHeaders({ Authorization: 'Bearer $S{otherUser}' })
+    //       .expectJsonMatchStrict({ message: 'Subtask deleted.' })
+    //       .expectStatus(200);
+    //   });
+    // });
   });
 });
