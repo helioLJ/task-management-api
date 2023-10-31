@@ -577,4 +577,52 @@ describe('App e2e', () => {
       });
     });
   });
+
+  describe('Task with Tags and Subtasks', () => {
+    it('should associate Tag with a Task', () => {
+      return pactum
+        .spec()
+        .patch('/task-tag')
+        .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+        .withBody({ taskId: '$S{taskId}', tagId: '$S{tagId}' })
+        .expectStatus(200);
+    });
+
+    it('retrieve task with tags and subtasks', () => {
+      const dueDate = new Date('2023-09-18').toISOString();
+      console.log('$S{taskId}');
+
+      return pactum
+        .spec()
+        .get('/task/{id}')
+        .withPathParams('id', '$S{taskId}')
+        .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+        .expectJsonLike({
+          title: 'Changed Task',
+          description: 'Im a description',
+          completed: true,
+          list: 'Work',
+          dueDate: dueDate,
+          subtasks: [
+            {
+              id: '$S{subtaskId}',
+              title: 'Changed Subtask',
+              completed: true,
+              taskId: '$S{taskId}',
+            },
+          ],
+          tags: [{ id: '$S{tagId}', name: 'Changed Tag' }],
+        })
+        .expectStatus(200);
+    });
+
+    it('should deassociate Tag with a Task', () => {
+      return pactum
+        .spec()
+        .delete('/task-tag')
+        .withHeaders({ Authorization: 'Bearer $S{userAt}' })
+        .withBody({ taskId: '$S{taskId}', tagId: '$S{tagId}' })
+        .expectStatus(200);
+    });
+  });
 });

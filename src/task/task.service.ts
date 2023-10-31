@@ -50,7 +50,13 @@ export class TaskService {
         where: {
           id: id,
         },
+        include: {
+          subtasks: true, // Include the associated subtasks.
+          tags: true, // Include the associated tags.
+        },
       });
+
+      console.log(task);
 
       if (!task) throw new NotFoundException('Task not found.');
       if (userId !== task.userId)

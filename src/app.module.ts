@@ -7,7 +7,6 @@ import { TaskModule } from './task/task.module';
 import { SubtaskModule } from './subtask/subtask.module';
 import { TagModule } from './tag/tag.module';
 import { TaskTagModule } from './task_tag/task_tag.module';
-import { TaskSubtaskModule } from './task_subtask/task_subtask.module';
 
 @Module({
   imports: [
@@ -19,7 +18,6 @@ import { TaskSubtaskModule } from './task_subtask/task_subtask.module';
     SubtaskModule,
     TagModule,
     TaskTagModule,
-    TaskSubtaskModule,
   ],
 })
 export class AppModule {}
