@@ -36,11 +36,51 @@ export class SubtaskService {
     }
   }
 
-  async update(id: number, updateSubtaskDto: UpdateSubtaskDto, userId: number) {
-    return `This action updates a #${id} subtask`;
+  async update(id: number, updateSubtaskDto: UpdateSubtaskDto) {
+    try {
+      const subtask = await this.prisma.subtask.findUnique({
+        where: {
+          id: id,
+        },
+      });
+
+      if (!subtask) throw new NotFoundException('Subtask not found.');
+
+      const updatedSubtask = await this.prisma.subtask.update({
+        data: {
+          title: updateSubtaskDto.title,
+          completed: updateSubtaskDto.completed,
+        },
+        where: {
+          id,
+        },
+      });
+
+      return updatedSubtask;
+    } catch (error) {
+      throw error;
+    }
   }
 
-  async remove(id: number, userId: number) {
-    return `This action removes a #${id} subtask`;
+  async remove(id: number) {
+    try {
+      const subtask = await this.prisma.subtask.findUnique({
+        where: {
+          id: id,
+        },
+      });
+
+      if (!subtask) throw new NotFoundException('Subtask not found.');
+
+      await this.prisma.subtask.delete({
+        where: {
+          id: id,
+        },
+      });
+
+      return { message: 'Subtask deleted.' };
+    } catch (error) {
+      throw error;
+    }
   }
 }

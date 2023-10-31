@@ -27,16 +27,12 @@ export class SubtaskController {
   }
 
   @Patch(':id')
-  update(
-    @GetUser('id') userId: number,
-    @Param('id') id: string,
-    @Body() updateSubtaskDto: UpdateSubtaskDto,
-  ) {
-    return this.subtaskService.update(+id, updateSubtaskDto, userId);
+  update(@Param('id') id: string, @Body() updateSubtaskDto: UpdateSubtaskDto) {
+    return this.subtaskService.update(+id, updateSubtaskDto);
   }
 
   @Delete(':id')
-  remove(@GetUser('id') userId: number, @Param('id') id: string) {
-    return this.subtaskService.remove(+id, userId);
+  remove(@Param('id') id: string) {
+    return this.subtaskService.remove(+id);
   }
 }
